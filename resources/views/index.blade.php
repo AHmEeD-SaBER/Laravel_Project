@@ -3,7 +3,8 @@
 
 @section('content')
     <div class="w-50 mx-auto mt-5 mb-5 bg-light p-4 rounded shadow">
-        <form id="registrationForm" method="POST" enctype="multipart/form-data" class="form-group">
+        <form id="registrationForm" method="POST" action="{{ route('register.submit') }}" enctype="multipart/form-data" class="form-group">
+            @csrf
             <h2 class="text-black fst-italic fw-semibold form-head">User Registration</h2>
 
             <div id="error-container" class="error-container" style="display: none;"></div>
@@ -68,8 +69,272 @@
     </div>    
 @endsection
 
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    let hasValidationError = false;
+    const submitBtn = document.querySelector('.btn-register');
+    const validationStates = {};
 
+    // Client-side format validation functions
+    function validateFullName(name) {
+        return /^[a-zA-Z\s]{3,50}$/.test(name);
+    }
 
+    function validateUsername(username) {
+        return /^[a-zA-Z0-9_]{4,20}$/.test(username);
+    }
+
+    function validateEmail(email) {
+        return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email);
+    }
+
+    function validatePhoneNumber(phone) {
+        return /^[0-9]{11}$/.test(phone);
+    }
+
+    function validatePassword(password) {
+        return /^(?=.*[0-9])(?=.*[!@#$%^&*])[a-zA-Z0-9!@#$%^&*]{8,}$/.test(password);
+    }
+
+    const fieldsToValidate = [{
+            id: 'full_name',
+            type: 'fullname',
+            validate: validateFullName,
+            needsServer: false,
+            message: {
+                valid: 'Valid name',
+                invalid: 'Use 3-50 alphabetic characters'
+            }
+        },
+        {
+            id: 'user_name',
+            type: 'username',
+            validate: validateUsername,
+            needsServer: true,
+            message: {
+                valid: 'Username available',
+                invalid: 'Use 4-20 alphanumeric characters'
+            }
+        },
+        {
+            id: 'email',
+            type: 'email',
+            validate: validateEmail,
+            needsServer: true,
+            message: {
+                valid: 'Email available',
+                invalid: 'Invalid email format'
+            }
+        },
+        {
+            id: 'phone',
+            type: 'phone',
+            validate: validatePhoneNumber,
+            needsServer: true,
+            message: {
+                valid: 'Phone number available',
+                invalid: 'Use 11 digits'
+            }
+        },
+        {
+            id: 'password',
+            type: 'password',
+            validate: validatePassword,
+            needsServer: false,
+            message: {
+                valid: 'Valid password',
+                invalid: 'Must have 8+ chars, numbers and special chars'
+            }
+        },
+        {
+            id: 'whatsapp',
+            type: 'whatsapp',
+            validate: validatePhoneNumber,
+            needsServer: true,
+            message: {
+                valid: 'Valid WhatsApp number',
+                invalid: 'Use 11 digits'
+            }
+        }
+    ];
+
+    function debounce(func, wait) {
+        let timeout;
+        return function(...args) {
+            clearTimeout(timeout);
+            timeout = setTimeout(() => func.apply(this, args), wait);
+        };
+    }
+
+    function validateField(fieldId, fieldType, value, field) {
+        // First do client-side validation
+        const isFormatValid = field.validate(value);
+        if (!isFormatValid) {
+            updateFieldStatus(fieldId, {
+                valid: false,
+                message: field.message.invalid
+            });
+            return;
+        }
+
+        // Only make server request if needed and format is valid
+        if (field.needsServer) {
+            const formData = new FormData();
+            formData.append('field', fieldId);
+            formData.append('type', fieldType);
+            formData.append('value', value);
+
+            fetch('{{ route("validate.field") }}', {
+                method: 'POST',
+                headers: {
+                    'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').getAttribute('content')
+                },
+                body: formData
+            })
+            .then(response => response.json())
+            .then(data => {
+                updateFieldStatus(fieldId, data);
+                validationStates[fieldId] = data.valid;
+                hasValidationError = Object.values(validationStates).some(state => state === false);
+                submitBtn.disabled = hasValidationError;
+            })
+            .catch(error => {
+                console.error('Validation Error:', error);
+            });
+        } else {
+            // For non-server validation, update immediately
+            updateFieldStatus(fieldId, {
+                valid: true,
+                message: field.message.valid
+            });
+            validationStates[fieldId] = true;
+            hasValidationError = Object.values(validationStates).some(state => state === false);
+            submitBtn.disabled = hasValidationError;
+        }
+    }
+
+    function updateFieldStatus(fieldId, data) {
+        const inputElement = document.getElementById(fieldId);
+        const feedbackDiv = document.getElementById(`${fieldId}-feedback`);
+
+        if (feedbackDiv && inputElement) {
+            feedbackDiv.textContent = data.message;
+            feedbackDiv.className = `validation-feedback ${data.valid ? 'valid' : 'invalid'}`;
+            inputElement.classList.remove('is-valid', 'is-invalid');
+            inputElement.classList.add(data.valid ? 'is-valid' : 'is-invalid');
+        }
+    }
+
+    const debouncedValidation = debounce((fieldId, fieldType, value, field) => {
+        validateField(fieldId, fieldType, value, field);
+    }, 500);
+
+    fieldsToValidate.forEach(field => {
+        const input = document.getElementById(field.id);
+        if (input) {
+            input.addEventListener('input', (e) => {
+                debouncedValidation(field.id, field.type, e.target.value, field);
+            });
+        }
+    });
+
+    // Password confirmation validation
+    const confirmPassword = document.getElementById('confirm_password');
+    const password = document.getElementById('password');
+
+    if (confirmPassword && password) {
+        confirmPassword.addEventListener('input', function() {
+            const feedbackDiv = document.getElementById('confirm_password-feedback') ||
+                createFeedbackDiv('confirm_password');
+
+            const isValid = this.value === password.value;
+            updateFieldStatus('confirm_password', {
+                valid: isValid,
+                message: isValid ? 'Passwords match' : 'Passwords do not match'
+            });
+            validationStates['confirm_password'] = isValid;
+            hasValidationError = Object.values(validationStates).some(state => state === false);
+            submitBtn.disabled = hasValidationError;
+        });
+    }
+
+    // Form submission
+    const form = document.getElementById('registrationForm');
+    if (form) {
+        form.addEventListener('submit', function(e) {
+            e.preventDefault();
+
+            const formData = new FormData(this);
+            
+            fetch('{{ route("register.submit") }}', {
+                method: 'POST',
+                headers: {
+                    'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').getAttribute('content')
+                },
+                body: formData
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.valid) {
+                    form.innerHTML = '<div class="success-message">Registration Successful!</div>';
+                } else {
+                    const errorContainer = document.getElementById('error-container');
+                    errorContainer.style.display = 'block';
+                    errorContainer.innerHTML = data.errors.map(error => 
+                        `<p class="error-message">${error}</p>`
+                    ).join('');
+                }
+            })
+            .catch(error => {
+                console.error('Submission Error:', error);
+                const errorContainer = document.getElementById('error-container');
+                errorContainer.style.display = 'block';
+                errorContainer.innerHTML = '<p class="error-message">An error occurred. Please try again.</p>';
+            });
+        });
+    }
+
+    function createFeedbackDiv(fieldId) {
+        const div = document.createElement('div');
+        div.id = `${fieldId}-feedback`;
+        div.className = 'validation-feedback';
+        document.getElementById(fieldId).parentNode.appendChild(div);
+        return div;
+    }
+
+    // File validation
+    const userImage = document.getElementById('user_image');
+    if (userImage) {
+        userImage.addEventListener('change', function(e) {
+            const file = e.target.files[0];
+            if (file) {
+                if (file.size > 5 * 1024 * 1024) {
+                    updateFieldStatus('user_image', {
+                        valid: false,
+                        message: 'File size must be less than 5MB'
+                    });
+                    this.value = '';
+                    return;
+                }
+
+                if (!['image/jpeg', 'image/png', 'image/gif'].includes(file.type)) {
+                    updateFieldStatus('user_image', {
+                        valid: false,
+                        message: 'Please upload an image file (JPEG, PNG, or GIF)'
+                    });
+                    this.value = '';
+                    return;
+                }
+
+                updateFieldStatus('user_image', {
+                    valid: true,
+                    message: 'Valid image selected'
+                });
+            }
+        });
+    }
+});
+</script>
 
 
 
