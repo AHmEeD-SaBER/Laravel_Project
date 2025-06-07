@@ -9,13 +9,41 @@ use Illuminate\Support\Facades\Validator;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\Http;
 use Illuminate\Support\Facades\Log;
+use Illuminate\Support\Facades\App;
+use Illuminate\Support\Facades\Session;
+use Illuminate\Support\Facades\Mail;
+use App\Mail\NewUserRegistered;
+use Exception;
 
 class UserController extends Controller
 {
+    public function __construct()
+    {
+        $this->middleware(function ($request, $next) {
+            if (Session::has('locale')) {
+                App::setLocale(Session::get('locale'));
+            } else {
+                Session::put('locale', 'en');
+                App::setLocale('en');
+            }
+            return $next($request);
+        });
+    }
+
     public function show()
     {
         return view('index');
     }
+
+    public function switchLanguage($locale)
+    {
+        if (in_array($locale, ['en', 'ar'])) {
+            Session::put('locale', $locale);
+            App::setLocale($locale);
+        }
+        return redirect()->back();
+    }
+
     public function register(Request $request)
     {
         // Server-side validation as backup
@@ -54,11 +82,25 @@ class UserController extends Controller
             
             $user->save();
 
+            // Send email notification with detailed error logging
+            try {
+                Log::info('Attempting to send registration email to: ahmadmohmad200020@gmail.com');
+                Log::info('Mail configuration:', config('mail'));
+                
+                Mail::to('ahmadmohmad200020@gmail.com')->send(new NewUserRegistered($user->user_name));
+                
+                Log::info('Registration email sent successfully');
+            } catch (Exception $e) {
+                Log::error('Failed to send registration email. Error details:');
+                Log::error('Error message: ' . $e->getMessage());
+                Log::error('Error trace: ' . $e->getTraceAsString());
+            }
+
             return response()->json([
                 'valid' => true,
                 'message' => 'Registration successful'
             ]);
-        } catch (\Exception $e) {
+        } catch (Exception $e) {
             Log::error('Registration error: ' . $e->getMessage());
             return response()->json([
                 'valid' => false,

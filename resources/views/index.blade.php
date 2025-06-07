@@ -1,70 +1,70 @@
 @extends('master')
 
-
 @section('content')
     <div class="w-50 mx-auto mt-5 mb-5 bg-light p-4 rounded shadow">
-        <form id="registrationForm" method="POST" action="{{ route('register.submit') }}" enctype="multipart/form-data" class="form-group">
+        <div class="language-switcher mb-3">
+            <a href="{{ route('language.switch', 'en') }}" class="btn btn-sm {{ app()->getLocale() == 'en' ? 'btn-primary' : 'btn-outline-primary' }}">English</a>
+            <a href="{{ route('language.switch', 'ar') }}" class="btn btn-sm {{ app()->getLocale() == 'ar' ? 'btn-primary' : 'btn-outline-primary' }}">العربية</a>
+        </div>
+
+        <form id="registrationForm" method="POST" action="{{ route('register.submit') }}" enctype="multipart/form-data" class="form-group" dir="{{ app()->getLocale() == 'ar' ? 'rtl' : 'ltr' }}">
             @csrf
-            <h2 class="text-black fst-italic fw-semibold form-head">User Registration</h2>
+            <h2 class="text-black fst-italic fw-semibold form-head">{{ __('auth.registration.title') }}</h2>
 
             <div id="error-container" class="error-container" style="display: none;"></div>
 
             <div class="form-floating mb-3">
-                <input type="text" class="form-control" id="full_name" name="full_name" placeholder="Ahmed Saber" required>
-                <label for="full_name">Full Name</label>
+                <input type="text" class="form-control" id="full_name" name="full_name" placeholder="{{ __('auth.registration.full_name') }}" required>
+                <label for="full_name">{{ __('auth.registration.full_name') }}</label>
                 <div class="validation-feedback" id="full_name-feedback"></div>
             </div>
 
             <div class="form-floating mb-3">
-                <input type="text" class="form-control" id="user_name" name="user_name" placeholder="Ahmed" required>
-                <label for="user_name">Username</label>
+                <input type="text" class="form-control" id="user_name" name="user_name" placeholder="{{ __('auth.registration.username') }}" required>
+                <label for="user_name">{{ __('auth.registration.username') }}</label>
                 <div class="validation-feedback" id="user_name-feedback"></div>
             </div>
 
             <div class="form-floating mb-3">
-                <input class="form-control" type="email" id="email" name="email" placeholder="Ahmed1@gmail.com" required>
-                <label for="email">Email</label>
+                <input class="form-control" type="email" id="email" name="email" placeholder="{{ __('auth.registration.email') }}" required>
+                <label for="email">{{ __('auth.registration.email') }}</label>
                 <div class="validation-feedback" id="email-feedback"></div>
             </div>
 
             <div class="form-floating mb-3">
-                <input class="form-control" type="tel" id="phone" name="phone" placeholder="01127447947" required>
-                <label for="phone">Phone Number</label>
+                <input class="form-control" type="tel" id="phone" name="phone" placeholder="{{ __('auth.registration.phone') }}" required>
+                <label for="phone">{{ __('auth.registration.phone') }}</label>
                 <div class="validation-feedback" id="phone-feedback"></div>
             </div>
 
             <div class="form-floating mb-3">
-                <input class="form-control" type="tel" id="whatsapp" name="whatsapp" placeholder="01127447947" required>
-                <label for="whatsapp">WhatsApp Number</label>
+                <input class="form-control" type="tel" id="whatsapp" name="whatsapp" placeholder="{{ __('auth.registration.whatsapp') }}" required>
+                <label for="whatsapp">{{ __('auth.registration.whatsapp') }}</label>
                 <div class="validation-feedback" id="whatsapp-feedback"></div>
             </div>
 
             <div class="form-floating w-100 mb-3">
-                <textarea id="address" name="address" class="w-100 h-25 mb-3 form-control" placeholder="Address"
-                    required></textarea>
-                <label for="address">Address</label>
+                <textarea id="address" name="address" class="w-100 h-25 mb-3 form-control" placeholder="{{ __('auth.registration.address') }}" required></textarea>
+                <label for="address">{{ __('auth.registration.address') }}</label>
             </div>
 
             <div class="form-floating mb-3">
-                <input class="form-control" type="password" id="password" name="password" placeholder="********" required>
-                <label for="password">Password</label>
+                <input class="form-control" type="password" id="password" name="password" placeholder="{{ __('auth.registration.password') }}" required>
+                <label for="password">{{ __('auth.registration.password') }}</label>
                 <div class="validation-feedback" id="password-feedback"></div>
             </div>
 
             <div class="form-floating mb-3">
-                <input class="form-control" type="password" id="confirm_password" name="confirm_password"
-                    placeholder="********" required>
-                <label for="confirm_password">Confirm Password</label>
+                <input class="form-control" type="password" id="confirm_password" name="confirm_password" placeholder="{{ __('auth.registration.confirm_password') }}" required>
+                <label for="confirm_password">{{ __('auth.registration.confirm_password') }}</label>
             </div>
 
             <div class="form-floating mb-3">
-                <input class="form-control" type="file" id="user_image" name="user_image" placeholder="User Image"
-                    accept="image/*">
-                <label for="user_image">Profile Image</label>
-
+                <input class="form-control" type="file" id="user_image" name="user_image" placeholder="{{ __('auth.registration.profile_image') }}" accept="image/*">
+                <label for="user_image">{{ __('auth.registration.profile_image') }}</label>
             </div>
 
-            <button type="submit" class="btn-register">Register</button>
+            <button type="submit" class="btn-register">{{ __('auth.registration.register') }}</button>
         </form>
     </div>    
 @endsection
@@ -336,29 +336,6 @@ document.addEventListener('DOMContentLoaded', function() {
 });
 </script>
 
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 <style>
 @import url('https://fonts.googleapis.com/css2?family=Poppins:ital,wght@0,100;0,200;0,300;0,400;0,500;0,600;0,700;0,800;0,900;1,100;1,200;1,300;1,400;1,500;1,600;1,700;1,800;1,900&display=swap');
 
@@ -369,7 +346,6 @@ document.addEventListener('DOMContentLoaded', function() {
     margin: 0;
     padding: 0;
 }
-
 
 body {
     background-color: #f5f5f5;
@@ -392,7 +368,6 @@ h2 {
     color: #2563eb;
     margin-bottom: 2rem;
 }
-
 
 .form-group input:focus,
 .form-group textarea:focus {
@@ -483,5 +458,43 @@ input[type="file"] {
         margin: 1rem;
         padding: 1rem;
     }
+}
+
+/* Language Switcher */
+.language-switcher {
+    text-align: right;
+    margin-bottom: 1rem;
+}
+
+.language-switcher .btn {
+    margin-left: 0.5rem;
+    font-size: 0.875rem;
+    padding: 0.25rem 0.75rem;
+}
+
+[dir="rtl"] .language-switcher {
+    text-align: left;
+}
+
+[dir="rtl"] .language-switcher .btn {
+    margin-left: 0;
+    margin-right: 0.5rem;
+}
+
+/* RTL Support */
+[dir="rtl"] .form-floating > label {
+    right: 0;
+    left: auto;
+    padding-right: 1rem;
+    padding-left: 0;
+}
+
+[dir="rtl"] .form-floating > .form-control {
+    padding-right: 1rem;
+    padding-left: 0;
+}
+
+[dir="rtl"] .validation-feedback {
+    text-align: right;
 }
 </style>
