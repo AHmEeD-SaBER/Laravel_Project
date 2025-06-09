@@ -3,7 +3,6 @@
 namespace App\Http\Controllers;
 
 use App\Models\CustomUser;
-use App\Models\User;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Validator;
 use Illuminate\Support\Facades\Hash;
@@ -46,23 +45,6 @@ class UserController extends Controller
 
     public function register(Request $request)
     {
-        // Server-side validation as backup
-        $validator = Validator::make($request->all(), [
-            'full_name' => ['required', 'regex:/^[a-zA-Z\s]{3,50}$/'],
-            'user_name' => ['required', 'regex:/^[a-zA-Z0-9_]{4,20}$/', 'unique:custom_users'],
-            'email' => ['required', 'email', 'unique:custom_users'],
-            'phone' => ['required', 'regex:/^[0-9]{11}$/', 'unique:custom_users'],
-            'whatsapp' => ['required', 'regex:/^[0-9]{11}$/'],
-            'password' => ['required', 'min:8', 'regex:/^(?=.*[0-9])(?=.*[!@#$%^&*])[a-zA-Z0-9!@#$%^&*]+$/'],
-            'user_image' => ['nullable', 'image', 'max:5120']
-        ]);
-
-        if ($validator->fails()) {
-            return response()->json([
-                'valid' => false,
-                'errors' => $validator->errors()->all()
-            ]);
-        }
 
         try {
             $user = new CustomUser();
@@ -73,27 +55,21 @@ class UserController extends Controller
             $user->whatsapp = $request->whatsapp;
             $user->address = $request->address;
             $user->password = Hash::make($request->password);
-            
+
             if ($request->hasFile('user_image')) {
                 $image = $request->file('user_image');
                 $imageData = file_get_contents($image->getRealPath());
                 $user->user_image = $imageData;
             }
-            
+
             $user->save();
 
-            // Send email notification with detailed error logging
             try {
-                Log::info('Attempting to send registration email to: ahmadmohmad200020@gmail.com');
-                Log::info('Mail configuration:', config('mail'));
-                
                 Mail::to('ahmadmohmad200020@gmail.com')->send(new NewUserRegistered($user->user_name));
-                
+
                 Log::info('Registration email sent successfully');
             } catch (Exception $e) {
                 Log::error('Failed to send registration email. Error details:');
-                Log::error('Error message: ' . $e->getMessage());
-                Log::error('Error trace: ' . $e->getTraceAsString());
             }
 
             return response()->json([
@@ -114,7 +90,6 @@ class UserController extends Controller
         $value = $request->value;
         $type = $request->type;
 
-        // Only handle availability checks here
         switch ($type) {
             case 'username':
                 $exists = CustomUser::where('user_name', $value)->exists();

@@ -26,7 +26,6 @@ class CustomUser extends Model
         'password',
     ];
 
-    // Custom validation rules
     public static function rules()
     {
         return [
@@ -69,20 +68,5 @@ class CustomUser extends Model
             'user_image.image' => 'The file must be an image',
             'user_image.max' => 'Image size must not exceed 5MB'
         ];
-    }
-
-    public static function usernameExists($username)
-    {
-        return static::where('user_name', $username)->exists();
-    }
-
-    public static function emailExists($email)
-    {
-        return static::where('email', $email)->exists();
-    }
-
-    public static function phoneExists($phone)
-    {
-        return static::where('phone', $phone)->exists();
     }
 }

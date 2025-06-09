@@ -57,6 +57,7 @@
             <div class="form-floating mb-3">
                 <input class="form-control" type="password" id="confirm_password" name="confirm_password" placeholder="{{ __('auth.registration.confirm_password') }}" required>
                 <label for="confirm_password">{{ __('auth.registration.confirm_password') }}</label>
+                <div class="validation-feedback" id="confirm_password-feedback"></div>
             </div>
 
             <div class="form-floating mb-3">
@@ -244,8 +245,7 @@ document.addEventListener('DOMContentLoaded', function() {
 
     if (confirmPassword && password) {
         confirmPassword.addEventListener('input', function() {
-            const feedbackDiv = document.getElementById('confirm_password-feedback') ||
-                createFeedbackDiv('confirm_password');
+            const feedbackDiv = document.getElementById('confirm_password-feedback')
 
             const isValid = this.value === password.value;
             updateFieldStatus('confirm_password', {
@@ -293,15 +293,6 @@ document.addEventListener('DOMContentLoaded', function() {
             });
         });
     }
-
-    function createFeedbackDiv(fieldId) {
-        const div = document.createElement('div');
-        div.id = `${fieldId}-feedback`;
-        div.className = 'validation-feedback';
-        document.getElementById(fieldId).parentNode.appendChild(div);
-        return div;
-    }
-
     // File validation
     const userImage = document.getElementById('user_image');
     if (userImage) {
