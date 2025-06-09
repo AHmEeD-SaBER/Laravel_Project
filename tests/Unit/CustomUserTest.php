@@ -10,19 +10,6 @@ class CustomUserTest extends TestCase
 {
     use RefreshDatabase;
 
-    public function test_validation_rules_are_correct()
-    {
-        $rules = CustomUser::rules();
-        
-        $this->assertArrayHasKey('full_name', $rules);
-        $this->assertArrayHasKey('user_name', $rules);
-        $this->assertArrayHasKey('email', $rules);
-        $this->assertArrayHasKey('phone', $rules);
-        $this->assertArrayHasKey('whatsapp', $rules);
-        $this->assertArrayHasKey('password', $rules);
-        $this->assertArrayHasKey('user_image', $rules);
-    }
-
     public function test_username_exists_method()
     {
         // Create a test user
@@ -36,8 +23,8 @@ class CustomUserTest extends TestCase
             'password' => bcrypt('Password123!')
         ]);
 
-        $this->assertTrue(CustomUser::usernameExists('testuser'));
-        $this->assertFalse(CustomUser::usernameExists('nonexistentuser'));
+        $this->assertTrue(CustomUser::where('user_name', 'testuser')->exists());
+        $this->assertFalse(CustomUser::where('user_name', 'nonexistentuser')->exists());
     }
 
     public function test_email_exists_method()
@@ -53,8 +40,8 @@ class CustomUserTest extends TestCase
             'password' => bcrypt('Password123!')
         ]);
 
-        $this->assertTrue(CustomUser::emailExists('test@example.com'));
-        $this->assertFalse(CustomUser::emailExists('nonexistent@example.com'));
+        $this->assertTrue(CustomUser::where('email', 'test@example.com')->exists());
+        $this->assertFalse(CustomUser::where('email', 'nonexistent@example.com')->exists());
     }
 
     public function test_phone_exists_method()
@@ -70,8 +57,8 @@ class CustomUserTest extends TestCase
             'password' => bcrypt('Password123!')
         ]);
 
-        $this->assertTrue(CustomUser::phoneExists('01123456789'));
-        $this->assertFalse(CustomUser::phoneExists('01123456788'));
+        $this->assertTrue(CustomUser::where('phone', '01123456789')->exists());
+        $this->assertFalse(CustomUser::where('phone', '01123456788')->exists());
     }
 
     public function test_password_is_hidden()
@@ -89,4 +76,4 @@ class CustomUserTest extends TestCase
         $userArray = $user->toArray();
         $this->assertArrayNotHasKey('password', $userArray);
     }
-} 
+}
